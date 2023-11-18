@@ -1,3 +1,4 @@
 # created by virtualenv automatically
 venv/bin
+#adding .env file here to ignore it
 .env
