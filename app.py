@@ -5,6 +5,7 @@ import uuid
 from pymongo.mongo_client import MongoClient
 from urllib.parse import quote_plus
 import os
+from datetime import datetime
 load_dotenv()
 
 
@@ -20,7 +21,8 @@ def registeruser():
         "_id": uuid.uuid4().hex,
         "fullname": request.args.get("fullname"),
         "email": request.args.get("newuseremail"),
-        "password": request.args.get("newuserpass")
+        "password": request.args.get("newuserpass"),
+        "register_req_timestamp": datetime.now()
     }
     #mongodb atlas instance
     mongodb_username = quote_plus(os.getenv('MONDODBUSER'))
@@ -29,9 +31,10 @@ def registeruser():
     client = MongoClient(mongo_altas_uri)
     db = client['userDB']
     if (db['users'].find_one({"email":user["email"]})):
-        return jsonify({"error":"a user with the same email already exist"})
+        # | operator here is used to merge two python dictionaries together
+        return jsonify({"register_status":"failed","register_status_message":"a user with the same email already exist"} | user), 200
     db['users'].insert_one(user)
-    return jsonify(user), 200
+    return jsonify({"register_status":"success","register_status_message":"user registered successfully"} | user), 200
 
 #User login
 @app.route("/home",methods=['POST'])
